@@ -12,17 +12,6 @@ A generative AI tool that helps students manage tasks, create optimized daily sc
 - **Flexible Storage** – SQLite database for tasks and productivity logs; no external DB setup.
 - **Reminder System** – Console-based reminders (extendable to Telegram, email, etc.).
 - **CLI Interface** – Simple command-line interaction.
- 
-##  Tech Stack :
-
-| Component         | Technology |
-|------------------|------------|
-| Language         | Python 3.9+ |
-| AI / LLM         | Gemini API (`google-genai`) |
-| Scheduling       | Custom greedy algorithm + OR-Tools (optional) |
-| Database         | SQLite |
-| Reminders        | Console (Telegram/email ready) |
-| Parsing Fallback | Regex when AI quota is exceeded |
 
 ##  Installation :
 
