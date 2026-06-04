@@ -9,21 +9,21 @@ import asyncio
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
-# New Gemini SDK (correct one)
+# ------------------------------
+# Gemini SDK 
 try:
     from google import genai
     HAS_GEMINI = True
 except ImportError:
     HAS_GEMINI = False
-    print("⚠️ google-genai not installed. Run: pip install google-genai")
-# ------------------------------
+    print(" !!!!  google-genai not installed. Run: pip install google-genai !!!!!!!")
+
 # Configuration
-# ------------------------------
 GEMINI_API_KEY = "api key here "
 
 # ------------------------------
 # Database Setup
-# ------------------------------
+
 conn = sqlite3.connect("scheduler.db", check_same_thread=False)
 cursor = conn.cursor()
 
@@ -57,19 +57,18 @@ CREATE TABLE IF NOT EXISTS user_preferences (
 """)
 conn.commit()
 
-# Default preferences
+# Default
 cursor.execute("INSERT OR IGNORE INTO user_preferences VALUES ('preferred_hours', '9-12,14-17,19-22')")
 cursor.execute("INSERT OR IGNORE INTO user_preferences VALUES ('max_hours_per_day', '6')")
 conn.commit()
 
 # ------------------------------
-# LLM Parser (Gemini or Fallback)
-# ------------------------------
+# LLM Parser (Gemini or Fallback logic )
+
 def parse_task_with_llm(user_input: str) -> Optional[Dict]:
     if not HAS_GEMINI:
         return parse_task_with_regex(user_input)
     
-    # Use the new client
     client = genai.Client(api_key=GEMINI_API_KEY)
     prompt = f"""
     Extract task details from this sentence. Return ONLY valid JSON with fields: title, deadline (ISO format if date given, else null), hours (float), priority (low/medium/high). If no deadline, set null. If no hours, estimate reasonably.
@@ -81,7 +80,7 @@ def parse_task_with_llm(user_input: str) -> Optional[Dict]:
             contents=prompt
         )
         text = response.text.strip()
-        # Remove markdown code blocks if any
+        # Remove markdown code blocks if present 
         import re
         text = re.sub(r'```json\s*', '', text)
         text = re.sub(r'```', '', text)
@@ -92,7 +91,7 @@ def parse_task_with_llm(user_input: str) -> Optional[Dict]:
 
 def parse_task_with_regex(user_input: str) -> Dict:
     """Simple regex fallback."""
-    # Look for hours
+ 
     hours_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:hour|hr)s?', user_input, re.I)
     hours = float(hours_match.group(1)) if hours_match else 1.0
     
@@ -103,7 +102,7 @@ def parse_task_with_regex(user_input: str) -> Dict:
     elif re.search(r'\b(low|optional|maybe)\b', user_input, re.I):
         priority = "low"
     
-    # Simple deadline extraction: tomorrow, Friday, etc.
+    # Simple deadline : tomorrow, Friday, etc.
     deadline = None
     today = datetime.now().date()
     if "tomorrow" in user_input.lower():
@@ -111,10 +110,9 @@ def parse_task_with_regex(user_input: str) -> Dict:
     elif "friday" in user_input.lower():
         days_ahead = (4 - today.weekday()) % 7
         deadline = (today + timedelta(days=days_ahead)).isoformat()
-    # Add more as needed
+       
     
-    # Title = everything before first " takes " or " in " or similar
-    title = user_input[:50]  # naive
+    title = user_input[:50]  # naive logic
     return {
         "title": title,
         "deadline": deadline,
@@ -124,36 +122,36 @@ def parse_task_with_regex(user_input: str) -> Dict:
 
 # ------------------------------
 # Priority Score Calculation
-# ------------------------------
+
 def compute_priority_score(task: Dict, proc_risk: float = 0.0) -> float:
     """Higher score = higher priority."""
     now = datetime.now()
     deadline = datetime.fromisoformat(task["deadline"]) if task.get("deadline") else None
     
-    # Urgency (inverse days left)
+    # Urgency - inverse of  days left
     if deadline and deadline > now:
         days_left = (deadline - now).total_seconds() / 86400.0
         urgency = 1.0 / (days_left + 0.5)
     else:
-        urgency = 2.0 if deadline and deadline <= now else 0.5  # overdue gets high
+        urgency = 2.0 if deadline and deadline <= now else 0.5  # overdue goes on top of list  
     
-    # Effort (log scale: large tasks slightly higher)
+    # Effort - log scale: large tasks slightly higher
     effort = min(1.0, task["hours"] / 8.0)  # normalized
     
     # User hint
     hint_map = {"low": 0.2, "medium": 0.6, "high": 1.0}
     hint = hint_map.get(task.get("priority_hint", "medium"), 0.6)
     
-    # Procrastination risk factor
+    # risk factor - Procrastination
     risk = min(0.5, proc_risk * 0.1)
     
     # Weights
     score = (0.5 * urgency) + (0.2 * effort) + (0.3 * hint) + risk
     return score
-
+    
 # ------------------------------
 # Productivity Learner (Simple)
-# ------------------------------
+
 def get_best_hours() -> List[Tuple[int, int]]:
     """Return list of (start_hour, end_hour) based on past focus ratings."""
     cursor.execute("SELECT hour_of_day, AVG(focus_rating) FROM productivity_logs GROUP BY hour_of_day")
@@ -170,7 +168,7 @@ def get_best_hours() -> List[Tuple[int, int]]:
     
     # Hours with average focus > 3.5 are "best"
     best = [row[0] for row in rows if row[1] and row[1] > 3.5]
-    # Convert consecutive hours into blocks (simplified)
+    # Convert consecutive hours into blocks
     if not best:
         return [(9, 12), (14, 17)]
     best.sort()
@@ -189,7 +187,7 @@ def get_best_hours() -> List[Tuple[int, int]]:
 
 # ------------------------------
 # Greedy Scheduler
-# ------------------------------
+
 def get_free_blocks(date: datetime.date, existing_events: List[Tuple[str, str]] = None) -> List[Tuple[datetime, datetime]]:
     """Return available time blocks for a given day."""
     best_hours = get_best_hours()
@@ -220,7 +218,7 @@ def schedule_tasks(tasks: List[Dict], days_ahead: int = 7) -> List[Dict]:
     """Returns list of assignments: {task_id, title, start, end}"""
     # Sort by priority
     for t in tasks:
-        t["priority_score"] = compute_priority_score(t, 0.0)  # proc risk from DB later
+        t["priority_score"] = compute_priority_score(t, 0.0)  # get risk from DB 
     tasks_sorted = sorted(tasks, key=lambda x: x["priority_score"], reverse=True)
     
     schedule = []
@@ -228,7 +226,7 @@ def schedule_tasks(tasks: List[Dict], days_ahead: int = 7) -> List[Dict]:
     for day_offset in range(days_ahead):
         date = today + timedelta(days=day_offset)
         free_blocks = get_free_blocks(date)
-        # We'll assign tasks that fit
+        # assign tasks that fit
         remaining_tasks = []
         for task in tasks_sorted:
             if task["status"] != "pending":
@@ -245,7 +243,7 @@ def schedule_tasks(tasks: List[Dict], days_ahead: int = 7) -> List[Dict]:
                         "start": start.isoformat(),
                         "end": end.isoformat()
                     })
-                    # Remove used portion
+                    # Remove useless portion
                     if end < blk_end:
                         free_blocks[i] = (end, blk_end)
                     else:
@@ -261,7 +259,7 @@ def schedule_tasks(tasks: List[Dict], days_ahead: int = 7) -> List[Dict]:
 
 # ------------------------------
 # LLM Schedule Explainer
-# ------------------------------
+
 def explain_schedule(schedule: List[Dict]) -> str:
     if not HAS_GEMINI:
         return "AI explanation not available (google-genai not installed)."
@@ -274,7 +272,7 @@ def explain_schedule(schedule: List[Dict]) -> str:
     """
     try:
         response = client.models.generate_content(
-            model='gemini-2.0-flash',  # or 'gemini-1.5-flash' if you prefer
+            model='gemini-2.0-flash',  # version 
             contents=prompt
         )
         return response.text.strip()
@@ -283,7 +281,7 @@ def explain_schedule(schedule: List[Dict]) -> str:
         return "I've built your schedule based on deadlines and your focus patterns. Check the tasks below."
 # ------------------------------
 # Main Interactive Loop
-# ------------------------------
+
 def add_task_from_input(user_input: str):
     parsed = parse_task_with_llm(user_input)
     if not parsed:
@@ -297,7 +295,7 @@ def add_task_from_input(user_input: str):
           parsed.get("hours", 1.0), parsed.get("priority", "medium"), 
           "pending", now_str))
     conn.commit()
-    print(f"✅ Task added: {parsed['title']}")
+    print(f" Task added: {parsed['title']}")
 
 def show_today_schedule():
     cursor.execute("SELECT id, title, deadline, hours, priority_hint, status FROM tasks WHERE status='pending'")
@@ -306,12 +304,12 @@ def show_today_schedule():
     if not schedule:
         print("No pending tasks.")
         return
-    print("\n📅 Your AI-Generated Schedule:")
+    print("\n Your AI-Generated Schedule:")
     for item in schedule[:10]:
         start = datetime.fromisoformat(item["start"])
         print(f"  {start.strftime('%a %H:%M')} – {item['title']} ({item['end']})")
     explanation = explain_schedule(schedule)
-    print(f"\n💡 Coach says: {explanation}\n")
+    print(f"\n Coach says: {explanation}\n")
 
 def log_feedback(task_title: str, focus_rating: int, completed: bool = True):
     hour = datetime.now().hour
@@ -328,7 +326,7 @@ def log_feedback(task_title: str, focus_rating: int, completed: bool = True):
     print("Thanks for the feedback!")
 
 def run_cli():
-    print("🤖 AI Smart Schedule & Task Prioritizer")
+    print(" AI Smart Schedule & Task Prioritizer")
     print("Commands:")
     print("  add <your task description>")
     print("  show")
@@ -354,11 +352,11 @@ def run_cli():
             cursor.execute("SELECT id, title, deadline, hours, priority_hint, status FROM tasks WHERE status='pending'")
             tasks = [{"id": row[0], "title": row[1], "deadline": row[2], "hours": row[3], "priority_hint": row[4], "status": row[5]} for row in cursor.fetchall()]
             if not tasks:
-                print("📭 No pending tasks. Nothing to remind.")
+                print(" No pending tasks. Nothing to remind.")
             else:
                 sched = schedule_tasks(tasks, days_ahead=1)
                 if not sched:
-                    print("📭 Could not generate a schedule for tomorrow. Check your free time blocks or task deadlines.")
+                    print(" Could not generate a schedule for tomorrow. Check your free time blocks or task deadlines.")
                 else:
                     check_and_send_reminders(sched)
         elif cmd == "exit":
@@ -369,8 +367,6 @@ def run_cli():
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1 and sys.argv[1] == "bot":
-        # Run the bot if the script is started with 'python smart_scheduler.py bot'
         asyncio.run(run_bot())
     else:
-        # Otherwise, run the normal CLI
         run_cli()
