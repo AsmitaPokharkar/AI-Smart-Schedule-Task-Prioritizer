@@ -45,7 +45,6 @@ pip install google-genai python-telegram-bot  # python-telegram-bot is optional
 - **Option B (testing only)**: Hardcode in the script (replace `YOUR_GEMINI_API_KEY` in the code).
 
 ##  Usage :
-
 Run the script:
 ```bash
 python smart_scheduler.py
@@ -88,9 +87,9 @@ ai-smart-scheduler/
 
 ##  Future Scope :
 
-- [ ] Google Calendar read/write integration  
-- [ ] Full Telegram bot with inline buttons  
-- [ ] Mobile app (Flutter)  
-- [ ] Procrastination prediction with simple ML  
-- [ ] Collaborative scheduling for study groups  
-- [ ] Voice input (speech‑to‑text)
+-  Google Calendar read/write integration  
+-  Full Telegram bot with inline buttons  
+-  Mobile app (Flutter)  
+-  Procrastination prediction with simple ML  
+-  Collaborative scheduling for study groups  
+-  Voice input (speech‑to‑text)
