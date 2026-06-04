@@ -4,10 +4,10 @@ A generative AI tool that helps students manage tasks, create optimized daily sc
 
 ##  Features :
 
-- **Natural Language Task Input** – Add tasks like *“Finish math homework by Friday, 2 hours, high priority”* – AI parses deadline, duration, and importance.
+- **Natural Language Task Input** – Add tasks AI parses deadline, duration, and importance.
 - **Smart Priority Scoring** – Combines urgency, effort, user hints, and past procrastination patterns.
-- **AI-Powered Schedule Generation** – Places tasks into your best focus hours using a greedy scheduling algorithm.
-- **Personalized Productivity Learning** – Learns your most productive hours from feedback (focus ratings 1–5).
+- **AI-Powered Schedule Generation** – Places tasks into  best focus hours using a greedy scheduling algorithm.
+- **Personalized Productivity Learning** – Learns most productive hours from feedback (focus ratings 1–5).
 - **Friendly AI Coach** – Explains *why* tasks are scheduled at certain times (Gemini LLM).
 - **Flexible Storage** – SQLite database for tasks and productivity logs; no external DB setup.
 - **Reminder System** – Console-based reminders (extendable to Telegram, email, etc.).
