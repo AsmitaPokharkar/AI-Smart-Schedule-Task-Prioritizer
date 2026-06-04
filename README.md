@@ -52,14 +52,11 @@ python smart_scheduler.py
 
 ### Available Commands
 
-| Command | Example | Description |
-|---------|---------|-------------|
-| `add <task description>` | `add write essay by tomorrow 10am, 2 hours` | Add a new task (AI parses deadline, effort, priority) |
-| `show` | `show` | Display your AI-generated schedule for the next 3 days |
-| `feedback <title> <rating> [y/n]` | `feedback math homework 4 y` | Rate your focus (1–5) and mark task as done – teaches the system |
-| `remind` | `remind` | Check for upcoming tasks within 15 minutes (console) |
-| `exit` | `exit` | Quit the application |
-
+ `add <task description>`
+ `show`
+ `feedback <title> <rating> [y/n]` 
+ `remind` 
+ `exit`
 
 ##  Working :
 
