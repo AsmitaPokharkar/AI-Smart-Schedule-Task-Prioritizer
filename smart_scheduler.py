@@ -5,9 +5,6 @@ import logging
 from datetime import datetime, timedelta
 from typing import List, Dict, Tuple, Optional
 import re
-import asyncio
-from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 # ------------------------------
 # Gemini SDK 
