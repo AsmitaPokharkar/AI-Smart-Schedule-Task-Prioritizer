@@ -79,8 +79,8 @@ python smart_scheduler.py
 ```
 ai-smart-scheduler/
 │
-├── smart_scheduler.py       # Main application
-├── scheduler.db             # SQLite database (auto-created)
+├── smart_scheduler.py       # Main app
+├── scheduler.db             # SQLite database (synthetic)
 ├── README.md                # This file
 └── requirements.txt         # Dependencies
 ```
