@@ -3,7 +3,6 @@
 A generative AI‑powered study companion that helps students manage tasks, create optimized daily schedules, and improve productivity through personalized feedback.  
 The app uses **Google Gemini AI** to understand natural language tasks, learns your best focus hours, and explains its scheduling decisions like a friendly coach.
 
-https://ai-smart-schedule-task-prioritizer-4rlisuowdoypayh5xdul4x.streamlit.app/
 ---
 
 ##  Features :
